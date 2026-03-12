@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@townops/shared-types": ["../../../packages/shared-types/index.ts"]
+    }
+  },
+  "include": ["src", "index.ts"],
+  "exclude": ["node_modules"]
+}

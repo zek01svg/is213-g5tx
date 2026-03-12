@@ -1,0 +1,20 @@
+{
+  "name": "@townops/open-case-composite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run dev",
+    "build": "bun run build",
+    "start": "bun run start",
+    "lint": "bun run lint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@townops/shared-types": "workspace:*",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
