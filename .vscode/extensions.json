@@ -9,6 +9,7 @@
     "mechatroner.rainbow-csv",
     "hediet.vscode-drawio",
     "humao.rest-client",
-    "vsciot-vscode.vscode-rabbitmq"
+    "vsciot-vscode.vscode-rabbitmq",
+    "tamasfe.even-better-toml"
   ]
 }

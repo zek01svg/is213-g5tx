@@ -3,6 +3,11 @@
   "editor.tabSize": 2,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.configPath": "tooling/prettier/prettier.config.js",
+  "eslint.options": {
+    "overrideConfigFile": "tooling/eslint/eslint.config.mjs"
+  },
+  "eslint.useFlatConfig": true,
 
   // --- Search & File Explorer ---
   "files.exclude": {
@@ -36,6 +41,10 @@
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true
   },
+  "files.associations": {
+    "*.toml": "toml"
+  },
+  "evenBetterToml.schema.enabled": true,
 
   // --- JavaScript / TypeScript Configuration (React/Node) ---
   "javascript.updateImportsOnFileMove.enabled": "always",
@@ -58,7 +67,12 @@
     "typescriptreact": "typescriptreact",
     "javascriptreact": "javascriptreact"
   },
-  "tailwindCSS.classAttributes": ["class", "className", "ngClass", ".*ClassName"],
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    ".*ClassName"
+  ],
 
   // --- Terraform ---
   "[terraform]": {
