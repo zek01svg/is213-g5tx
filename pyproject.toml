@@ -10,7 +10,20 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["apps/atoms/*", "apps/composites/*", "packages/shared-python"]
+members = [
+    "apps/atoms/alert",
+    "apps/atoms/appointment",
+    "apps/atoms/assignment",
+    "apps/atoms/metrics",
+    "apps/atoms/proof",
+    "apps/atoms/resident",
+    "apps/composites/accept-job",
+    "apps/composites/assign-job",
+    "apps/composites/close-case",
+    "apps/composites/handle-breach",
+    "apps/composites/reschedule-job",
+    "packages/shared-python",
+]
 
 [tool.uv]
 package = false

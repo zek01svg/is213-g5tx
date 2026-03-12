@@ -10,11 +10,9 @@ members = [
     "townops-appointment",
     "townops-assign-job",
     "townops-assignment",
-    "townops-case",
     "townops-close-case",
     "townops-handle-breach",
     "townops-metrics",
-    "townops-open-case",
     "townops-proof",
     "townops-reschedule-job",
     "townops-resident",
@@ -1349,23 +1347,6 @@ requires-dist = [
 ]
 
 [[package]]
-name = "townops-case"
-version = "0.1.0"
-source = { editable = "apps/atoms/case" }
-dependencies = [
-    { name = "fastapi" },
-    { name = "supabase" },
-    { name = "townops-shared" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi" },
-    { name = "supabase" },
-    { name = "townops-shared", editable = "packages/shared-python" },
-]
-
-[[package]]
 name = "townops-close-case"
 version = "0.1.0"
 source = { editable = "apps/composites/close-case" }
@@ -1403,23 +1384,6 @@ requires-dist = [
 name = "townops-metrics"
 version = "0.1.0"
 source = { editable = "apps/atoms/metrics" }
-dependencies = [
-    { name = "fastapi" },
-    { name = "supabase" },
-    { name = "townops-shared" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi" },
-    { name = "supabase" },
-    { name = "townops-shared", editable = "packages/shared-python" },
-]
-
-[[package]]
-name = "townops-open-case"
-version = "0.1.0"
-source = { editable = "apps/composites/open-case" }
 dependencies = [
     { name = "fastapi" },
     { name = "supabase" },
