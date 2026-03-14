@@ -38,3 +38,8 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 extend = "tooling/ruff/ruff.toml"
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+testpaths = ["apps", "packages"]
+pythonpath = ["."]
