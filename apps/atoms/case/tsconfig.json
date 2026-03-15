@@ -4,7 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@townops/shared-types": ["../../../packages/shared-types/index.ts"]
+      "@townops/shared-types": ["../../../packages/shared-types/index.ts"],
+      "drizzle-orm": ["./node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["./node_modules/drizzle-orm/*"]
     }
   },
   "include": ["src", "index.ts"],
