@@ -102,7 +102,6 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-non-null-assertion": "error",
       "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
-      "import/no-duplicates": "error",
       "no-restricted-imports": [
         "error",
         {
