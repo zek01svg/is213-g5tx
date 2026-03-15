@@ -13,6 +13,7 @@ Detailed list of all services in the TownOps ecosystem.
 | **Appointment** | Schedule management                 | `appointments`   | `/apps/atoms/appointment` |
 | **Proof**       | Attachments, photos, and signatures | `media`          | `/apps/atoms/proof`       |
 | **Metrics**     | Performance and SLA analytics       | `metrics_log`    | `/apps/atoms/metrics`     |
+| **Contractor**  | Vendor profiles & service coverage  | External         | OutSystems Cloud          |
 
 ## Composite Services (Port Range: 6001-6999)
 

@@ -6,33 +6,44 @@ TownOps uses RabbitMQ to handle eventual consistency and business triggers that 
 
 ### 1. Case Lifecycle
 
-- **Event**: `case.created`
-  - **Publisher**: `case-atom`
+- **Event**: `Case_Opened`
+  - **Publisher**: `Open Case` (Composite)
   - **Consumers**:
-    - `alert-atom`: Creates initial SLA monitoring alerts.
-    - `metrics-atom`: Increments "New Cases" counter.
+    - `Assign Job` (Composite): Queries contractor availability and creates an assignment.
 
-- **Event**: `job.assigned`
-  - **Publisher**: `assignment-atom`
+- **Event**: `Job_Assigned`
+  - **Publisher**: `Assign Job` (Composite)
   - **Consumers**:
-    - `resident-atom`: Sends push notification to the reporting resident.
-    - `alert-atom`: Resolves "Unassigned Case" alert.
+    - `Alert` (Atom): Notifies the assigned contractor.
 
 ### 2. SLA & Breach Management
 
-- **Event**: `sla.warning`
-  - **Publisher**: `alert-atom` (via delayed exchange)
+- **Event**: `SLA_Breached`
+  - **Publisher**: `Assignment` (Atom, via Delayed Queue / DLX timer)
   - **Consumer**:
-    - `case-composite`: Triggers internal staff escalation workflow.
+    - `Handle Breach` (Composite): Triggers re-assignment, sets case to ESCALATED, and records metrics penalty.
+
+- **Event**: `Notify_Escalated`
+  - **Publisher**: `Handle Breach` (Composite)
+  - **Consumer**:
+    - `Alert` (Atom): Notifies officers of the escalation.
+
+### 3. Case Closure
+
+- **Event**: `Job_Done`
+  - **Publisher**: `Close Case` (Composite)
+  - **Consumers**:
+    - `Metrics` (Atom): Records SLA compliance and performance score.
+    - `Alert` (Atom): Sends final notifications.
 
 ## Exchange Configuration
 
 - **Exchange**: `townops.events` (Topic)
-- **Routing Keys**: `<entity>.<action>`
-  - Example: `case.created`, `alert.triggered`
+- **Routing Keys**: `<entity>.<action>` (Mapped internally to event names)
+  - Examples: `case.opened`, `job.assigned`, `sla.breached`
 
 ## Reliability Patterns
 
-1. **Dead Letter Exchanges (DLX)**: Any message that fails processing 3 times is moved to `townops.dlx` for manual investigation.
-2. **Idempotency**: All consumers use unique event IDs to prevent duplicate processing.
-3. **Acknowledgment**: Manual ACKs are required for critical data mutations.
+1. **SLA Timers (DLX for Delivery)**: Messages with an SLA TTL sit in temporary queues; if left unacknowledged, they route to a Dead Letter Exchange to trigger `SLA_Breached`.
+2. **Error Handling DLX**: Messages failing processing 3 times move to `townops.dlx` for audit.
+3. **Idempotency**: All consumers use unique event IDs to prevent duplicate processing.

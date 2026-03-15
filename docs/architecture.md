@@ -2,17 +2,17 @@
 
 ## Core Philosophy: Atomic & Composite
 
-TownOps is built around the **Atomic/Composite** microservices pattern, which is designed to prevent the "distributed monolith" problem.
+TownOps is built around the **Atomic/Composite** microservices pattern, designed to achieve clean separation of concerns and maintainable data ownership.
 
 ### 1. Atomic Services (Atoms)
 
 - **Role**: Domain Data Owners.
-- **Tech**: Python 3.11+, FastAPI, Supabase-py/Drizzle.
+- **Tech**: Python 3.11+, FastAPI (or Bun/Hono for selected services).
 - **Rules**:
   - Each atom owns exactly one database schema (or a set of related tables).
   - Atoms **never** call other atoms via HTTP.
   - Atoms are agnostic of the business processes they belong to.
-  - Data changes are broadcasted via **Domain Events** on RabbitMQ.
+  - Data changes or triggers can be broadcasted via **AMQP events** (e.g., SLA Breached).
 
 ### 2. Composite Services (Composites)
 
@@ -21,40 +21,85 @@ TownOps is built around the **Atomic/Composite** microservices pattern, which is
 - **Rules**:
   - Composites do not have their own persistent storage.
   - They coordinate multiple atoms using HTTP REST calls.
-  - They are responsible for transaction management (Saga pattern where applicable).
-  - They expose process-oriented APIs (e.g., `POST /open-case`).
+  - They are responsible for workflow execution and state coordination.
+  - They emit process-driven events (e.g., `Case_Opened`) to coordinate downstream workflows asynchronously.
 
 ### 3. Messaging Layer (AMQP)
 
 - **Broker**: RabbitMQ.
 - **Patterns**:
-  - **Pub/Sub**: Atoms publish events (e.g., `case.created`).
-  - **Worker Queues**: Background tasks (e.g., sending an email after an alert is generated).
-  - **Dead Letter Exchanges (DLX)**: Handling retries and failed processing.
+  - **Process Choreography**: Composites publish process states (e.g., `Case_Opened`, `Job_Assigned`).
+  - **SLA Monitors (DLX)**: Delayed queues with TTL that route to a Dead Letter Exchange on expiration (e.g., triggers `SLA_Breached`).
+  - **Audit & Analytics**: Consumer queues for `Metrics` and `Alert` tracking.
 
-## Data Flow Illustration
+## Data Flow Illustration (Ideal Case Creation)
 
 ```mermaid
-sequenceDiagram
-    participant FE as Frontend
-    participant GW as Kong Gateway
-    participant OC as Open Case (Composite)
-    participant AC as Case (Atom)
-    participant AA as Alert (Atom)
-    participant MQ as RabbitMQ
+flowchart TD
+    %% Define Nodes
+    UI["Officer / Contractor UI"]
 
-    FE->>GW: POST /api/cases
-    GW->>OC: Forward Request
-    OC->>AC: GET /residents/{id} (Verify)
-    OC->>AC: POST /cases (Create)
-    AC-->>OC: 201 Created
-    OC-->>FE: Success
-    AC-)+MQ: Emit case.created
-    MQ-)+AA: Consume case.created
-    AA->>AA: Generate SLA Alert
+    subgraph Composites ["Composite Layer (Processes)"]
+        OpenCase["Open Case"]
+        AssignJob["Assign Job"]
+        AcceptJob["Accept Job"]
+        CloseCase["Close Case"]
+    end
+
+    subgraph Atoms ["Atomic Layer (Data)"]
+        Resident["Resident"]
+        Case["Case"]
+        Assignment["Assignment"]
+        Appointment["Appointment"]
+        Proof["Proof"]
+        Metrics["Metrics"]
+        Alert["Alert"]
+    end
+
+    Contractor["Contractor (OutSystems)"]
+
+    %% Flow 1: Opening
+    UI -- "1. HTTP POST" --> OpenCase
+    OpenCase -- "2. HTTP GET" --> Resident
+    OpenCase -- "3. HTTP POST" --> Case
+    OpenCase -.->|AMQP: Case_Opened| AssignJob
+
+    %% Flow 2: Assigning
+    AssignJob -- "4. HTTP GET" --> Contractor
+    AssignJob -- "5. HTTP POST" --> Assignment
+    AssignJob -.->|AMQP: Job_Assigned| Alert
+
+    %% Flow 3: Accepting
+    UI -- "6. HTTP PUT" --> AcceptJob
+    AcceptJob -- "7. HTTP PUT" --> Assignment
+    AcceptJob -- "8. HTTP PUT" --> Case
+    AcceptJob -- "9. HTTP POST" --> Appointment
+
+    %% Flow 4: Closing
+    UI -- "10. HTTP POST" --> CloseCase
+    CloseCase -- "11. HTTP POST" --> Proof
+    CloseCase -- "12. HTTP PUT" --> Case
+    CloseCase -.->|AMQP: Job_Done| Metrics
+    CloseCase -.->|AMQP: Job_Done| Alert
+
+    %% Styling
+    style OpenCase fill:#f9f,stroke:#333,stroke-width:2px
+    style AssignJob fill:#f9f,stroke:#333,stroke-width:2px
+    style AcceptJob fill:#f9f,stroke:#333,stroke-width:2px
+    style CloseCase fill:#f9f,stroke:#333,stroke-width:2px
+
+    style Case fill:#ffff00,stroke:#333,stroke-width:1px
+    style Resident fill:#ffff00,stroke:#333,stroke-width:1px
+    style Assignment fill:#ffff00,stroke:#333,stroke-width:1px
+    style Appointment fill:#ffff00,stroke:#333,stroke-width:1px
+    style Proof fill:#ffff00,stroke:#333,stroke-width:1px
+    style Metrics fill:#ffff00,stroke:#333,stroke-width:1px
+    style Alert fill:#dae8fc,stroke:#6c8ebf,stroke-width:1px
+    style Contractor fill:#dae8fc,stroke:#6c8ebf,stroke-width:1px
+    style UI fill:#fff,stroke:#333,stroke-width:1px
 ```
 
 ## Scaling Strategy
 
-- **Horizontal Scaling**: Each service is containerized (Docker/ACA) and can be scaled independently based on load.
-- **Scale-to-Zero**: Infrastructure supports scale-to-zero for development and idle production environments to minimize costs.
+- **Horizontal Scaling**: Each service is containerized (Docker) and can be scaled independently based on workload.
+- **Scale-to-Zero**: Infrastructure supports scale-to-zero configurations (e.g., Azure Container Apps) for cost-efficient operations.
