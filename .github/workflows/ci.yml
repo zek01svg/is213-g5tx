@@ -75,7 +75,7 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
       - name: Check Formatting
-        run: pnpm prettier --config tooling/prettier/prettier.config.js --check .
+        run: pnpm format:check
       - name: Lint JS/TS
         run: pnpm lint:js
 
